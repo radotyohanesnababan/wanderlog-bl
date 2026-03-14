@@ -1,16 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import LoginButton from "./LoginButton";
+import AuthHandler from "./AuthHandler";
 
 export default async function LoginPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (user) redirect("/dashboard");
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4"
+    
       style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)" }}>
+      <AuthHandler />
       <div className="w-full max-w-sm text-center space-y-8">
         {/* Logo */}
         <div className="space-y-2">

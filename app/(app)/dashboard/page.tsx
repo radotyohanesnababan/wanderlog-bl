@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const supabase = createClient();
+  const supabase =  await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
@@ -34,7 +34,7 @@ export default async function DashboardPage() {
         <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden">
           {profile?.avatar_url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+            <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           )}
         </div>
       </header>
