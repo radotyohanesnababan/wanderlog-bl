@@ -166,7 +166,7 @@ useEffect(() => {
   setStatus("error");
   stopAllIntervals();
 },
-      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
     );
 
     gpsIntervalRef.current = setInterval(recordPoint, GPS_INTERVAL_MS);
