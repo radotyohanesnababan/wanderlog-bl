@@ -65,6 +65,39 @@ export default function TrackPage() {
     };
   }, [status, startTime]);
 
+  // Warn user kalau mau leave saat tracking aktif
+useEffect(() => {
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (status === "tracking") {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  };
+
+  const handlePopState = () => {
+    if (status === "tracking") {
+      const confirm = window.confirm(
+        "Tracking masih aktif! Kalau keluar, perjalanan akan otomatis distop. Lanjutkan?"
+      );
+      if (confirm) {
+        handleStop();
+      } else {
+        // Push state lagi biar tidak jadi back
+        window.history.pushState(null, "", "/track");
+      }
+    }
+  };
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.history.pushState(null, "", "/track");
+  window.addEventListener("popstate", handlePopState);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.removeEventListener("popstate", handlePopState);
+  };
+}, [status]);
+
   function stopAllIntervals() {
     if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
     if (gpsIntervalRef.current) clearInterval(gpsIntervalRef.current);
