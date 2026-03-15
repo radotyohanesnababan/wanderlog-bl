@@ -72,10 +72,10 @@ wanderlog-bl/
 - [x] Phase 3: Auth UI (Google OAuth)
 - [x] Phase 4: GPS Tracking
 - [x] Phase 5: Peta & Rute (Leaflet)
-- [ ] Phase 6: Place & Review
-- [ ] Phase 7: History
-- [ ] Phase 8: PWA Config
-- [ ] Phase 9: Public Review
+- [x] Phase 6: Place & Review
+- [x] Phase 7: History
+- [x] Phase 8: PWA Config
+- [x] Phase 9: Public Review
 
 ## Deploy ke Vercel
 
