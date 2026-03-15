@@ -156,11 +156,17 @@ useEffect(() => {
         setCurrentPos(p);
       },
       (err) => {
-        setErrorMsg(`GPS error: ${err.message}`);
-        setStatus("error");
-        stopAllIntervals();
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+  const msg = {
+    1: "Izin GPS ditolak",
+    2: "Posisi tidak tersedia",
+    3: "GPS timeout",
+  }[err.code] ?? `Error code ${err.code}`;
+  
+  setErrorMsg(`GPS error: ${msg}`);
+  setStatus("error");
+  stopAllIntervals();
+},
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5000 }
     );
 
     gpsIntervalRef.current = setInterval(recordPoint, GPS_INTERVAL_MS);

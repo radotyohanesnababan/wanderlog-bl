@@ -21,6 +21,8 @@ export default function TripRouteMap({ points, places }: TripRouteMapProps) {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
+    if ((mapRef.current as any)._leaflet_id) return;
+
     import("leaflet").then((L) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
