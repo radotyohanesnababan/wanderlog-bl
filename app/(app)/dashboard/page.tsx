@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function DashboardPage() {
-  const supabase =  await createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
@@ -34,17 +34,23 @@ export default async function DashboardPage() {
         <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden">
           {profile?.avatar_url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
           )}
         </div>
       </header>
 
       {/* Start Trip CTA */}
       <Link href="/track"
-        className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl p-6 text-center transition-colors mb-6 shadow-lg shadow-green-900/30">
+        className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl p-6 text-center transition-colors mb-3 shadow-lg shadow-green-900/30">
         <div className="text-3xl mb-1">🚶</div>
         <div className="text-lg">Mulai Perjalanan</div>
         <div className="text-green-100 text-sm mt-1">Tap untuk start tracking GPS</div>
+      </Link>
+
+      {/* Tambah Tempat Manual */}
+      <Link href="/add-place"
+        className="block w-full border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium rounded-2xl py-3 text-center transition-colors mb-6 text-sm">
+        ✏️ Tambah Tempat Manual
       </Link>
 
       {/* Recent Trips */}

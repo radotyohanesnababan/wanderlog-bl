@@ -6,9 +6,11 @@ interface TrackMapProps {
   points: Array<{ lat: number; lng: number }>;
   currentPos: { lat: number; lng: number } | null;
   isTracking: boolean;
+  pinnedPlaces?: Array<{ lat: number; lng: number; name: string }>;
+  onMapTap?: (lat: number, lng: number) => void;
 }
 
-export default function TrackMap({ points, currentPos, isTracking }: TrackMapProps) {
+export default function TrackMap({ points, currentPos, isTracking, pinnedPlaces = [], onMapTap }: TrackMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
@@ -16,6 +18,10 @@ export default function TrackMap({ points, currentPos, isTracking }: TrackMapPro
   const polylineRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markerRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const placeMarkersRef = useRef<any[]>([]);
+  const onMapTapRef = useRef(onMapTap);
+  onMapTapRef.current = onMapTap;
 
   // Init map sekali
   useEffect(() => {
@@ -23,6 +29,11 @@ export default function TrackMap({ points, currentPos, isTracking }: TrackMapPro
 
     // Dynamic import Leaflet (client-side only)
     import("leaflet").then((L) => {
+
+      if ((mapRef.current as any)._leaflet_id) {
+    return;
+  }
+  
       // Fix default icon path issue di Next.js
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -44,6 +55,13 @@ export default function TrackMap({ points, currentPos, isTracking }: TrackMapPro
       }).addTo(map);
 
       mapInstanceRef.current = map;
+
+      // Tap handler untuk pin tempat
+      map.on("click", (e: any) => {
+        if (onMapTapRef.current) {
+          onMapTapRef.current(e.latlng.lat, e.latlng.lng);
+        }
+      });
     });
 
     return () => {
@@ -54,6 +72,33 @@ export default function TrackMap({ points, currentPos, isTracking }: TrackMapPro
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Update place markers
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    import("leaflet").then((L) => {
+      // Hapus markers lama
+      placeMarkersRef.current.forEach((m) => m.remove());
+      placeMarkersRef.current = [];
+
+      // Tambah markers baru
+      pinnedPlaces.forEach((place) => {
+        const icon = L.divIcon({
+          className: "",
+          html: `<div style="
+            background:white;border:2px solid #16a34a;
+            border-radius:8px;padding:2px 6px;
+            font-size:11px;white-space:nowrap;
+            box-shadow:0 2px 6px rgba(0,0,0,0.4);
+            color:#0f172a;font-weight:600;
+          ">📍 ${place.name}</div>`,
+          iconAnchor: [0, 0],
+        });
+        const marker = L.marker([place.lat, place.lng], { icon }).addTo(mapInstanceRef.current);
+        placeMarkersRef.current.push(marker);
+      });
+    });
+  }, [pinnedPlaces]);
 
   // Update polyline saat points berubah
   useEffect(() => {

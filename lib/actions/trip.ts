@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function startTrip(): Promise<{ tripId: string | null; error: string | null }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { tripId: null, error: "Tidak terautentikasi" };
 
@@ -25,7 +25,7 @@ export async function stopTrip(
   tripId: string,
   distanceKm: number
 ): Promise<{ error: string | null }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Tidak terautentikasi" };
 
@@ -48,7 +48,7 @@ export async function saveTripPoints(
   tripId: string,
   points: Array<{ lat: number; lng: number; recorded_at: string }>
 ): Promise<{ error: string | null }> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { error } = await supabase.from("trip_points").insert(
     points.map((p) => ({ trip_id: tripId, ...p }))
@@ -61,7 +61,7 @@ export async function updateTripDistance(
   tripId: string,
   distanceKm: number
 ): Promise<{ error: string | null }> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { error } = await supabase
     .from("trips")

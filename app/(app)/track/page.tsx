@@ -5,6 +5,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { startTrip, stopTrip, saveTripPoints, updateTripDistance } from "@/lib/actions/trip";
 import { totalDistance, formatDuration } from "@/lib/utils/geo";
+import PinPlaceModal from "@/components/trip/PinPlaceModal";
+import TripTitleModal from "@/components/trip/TripTitleModal";
+import { updateTripTitle } from "@/lib/actions/updateTripTItle";
 
 // Leaflet harus di-load client-side only
 const TrackMap = dynamic(() => import("@/components/map/TrackMap"), {
@@ -24,6 +27,7 @@ const BATCH_INTERVAL_MS = 30_000; // save ke DB setiap 30 detik
 
 export default function TrackPage() {
   const [status, setStatus] = useState<TrackingStatus>("idle");
+  const [showTitleModal, setShowTitleModal] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [tripId, setTripId] = useState<string | null>(null);
   const [currentPos, setCurrentPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -31,6 +35,8 @@ export default function TrackPage() {
   const [distanceKm, setDistanceKm] = useState(0);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [elapsed, setElapsed] = useState(0);
+  const [pendingPin, setPendingPin] = useState<{ lat: number; lng: number } | null>(null);
+  const [pinnedPlaces, setPinnedPlaces] = useState<Array<{ lat: number; lng: number; name: string }>>([]);
 
   const pendingPointsRef = useRef<GpsPoint[]>([]);
   const watchIdRef = useRef<number | null>(null);
@@ -137,6 +143,7 @@ export default function TrackPage() {
     if (remaining.length) await saveTripPoints(tripId, remaining);
     await stopTrip(tripId, distanceKmRef.current);
     setStatus("stopped");
+    setShowTitleModal(true);
   }
 
   const formatElapsed = (s: number) => {
@@ -164,8 +171,17 @@ export default function TrackPage() {
           points={points.map((p) => ({ lat: p.lat, lng: p.lng }))}
           currentPos={currentPos}
           isTracking={status === "tracking"}
+          pinnedPlaces={pinnedPlaces}
+          onMapTap={status === "tracking" ? (lat, lng) => setPendingPin({ lat, lng }) : undefined}
         />
       </div>
+
+      {/* Pin hint saat tracking */}
+      {status === "tracking" && (
+        <div className="flex-shrink-0 mx-4 mb-1 text-center text-slate-500 text-xs">
+          Tap di peta untuk pin tempat
+        </div>
+      )}
 
       {/* Stats bar */}
       {(status === "tracking" || status === "stopped") && (
@@ -265,6 +281,28 @@ export default function TrackPage() {
           </button>
         )}
       </div>
+      {showTitleModal && tripId && (
+  <TripTitleModal
+    onSave={async (title) => {
+      if (title) await updateTripTitle(tripId, title);
+      setShowTitleModal(false);
+    }}
+    onSkip={() => setShowTitleModal(false)}
+  />
+)}
+      {/* Pin Place Modal */}
+      {pendingPin && tripId && (
+        <PinPlaceModal
+          tripId={tripId}
+          lat={pendingPin.lat}
+          lng={pendingPin.lng}
+          onClose={() => setPendingPin(null)}
+          onSaved={(placeId, name) => {
+            setPinnedPlaces((prev) => [...prev, { lat: pendingPin.lat, lng: pendingPin.lng, name }]);
+            setPendingPin(null);
+          }}
+        />
+      )}
     </main>
   );
 }
