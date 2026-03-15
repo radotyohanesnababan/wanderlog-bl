@@ -49,3 +49,12 @@ body {
 .leaflet-tile-pane {
   filter: brightness(0.85) saturate(0.9);
 }
+
+/* NProgress */
+#nprogress .bar {
+  background: #22c55e !important;
+  height: 3px !important;
+}
+#nprogress .peg {
+  box-shadow: 0 0 10px #22c55e, 0 0 5px #22c55e !important;
+}

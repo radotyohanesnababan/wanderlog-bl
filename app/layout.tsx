@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
+import NavigationProgress from "@/components/ui/NavigationProgress";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -39,6 +41,9 @@ export default function RootLayout({
   return (
     <html lang="id" className="dark">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-900 text-slate-100 min-h-screen`}>
+        <Suspense>
+          <NavigationProgress />
+        </Suspense>
         {children}
       </body>
     </html>

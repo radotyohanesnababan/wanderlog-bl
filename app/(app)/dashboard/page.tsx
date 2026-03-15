@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import LinkWithProgress from "@/components/ui/LinkWithProgress";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -40,26 +40,26 @@ export default async function DashboardPage() {
       </header>
 
       {/* Start Trip CTA */}
-      <Link href="/track"
+      <LinkWithProgress href="/track"
         className="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold rounded-2xl p-6 text-center transition-colors mb-3 shadow-lg shadow-green-900/30">
         <div className="text-3xl mb-1">🚶</div>
         <div className="text-lg">Mulai Perjalanan</div>
         <div className="text-green-100 text-sm mt-1">Tap untuk start tracking GPS</div>
-      </Link>
+      </LinkWithProgress>
 
       {/* Tambah Tempat Manual */}
-      <Link href="/add-place"
+      <LinkWithProgress href="/add-place"
         className="block w-full border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white font-medium rounded-2xl py-3 text-center transition-colors mb-6 text-sm">
         ✏️ Tambah Tempat Manual
-      </Link>
+      </LinkWithProgress>
 
       {/* Recent Trips */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-white">Perjalanan Terakhir</h2>
-          <Link href="/history" className="text-green-400 text-sm hover:text-green-300">
+          <LinkWithProgress href="/history" className="text-green-400 text-sm hover:text-green-300">
             Lihat semua
-          </Link>
+          </LinkWithProgress>
         </div>
 
         {!trips?.length ? (
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="space-y-3">
             {trips.map((trip) => (
-              <Link key={trip.id} href={`/trip/${trip.id}`}
+              <LinkWithProgress key={trip.id} href={`/trip/${trip.id}`}
                 className="block bg-slate-800 border border-slate-700 hover:border-slate-500 rounded-xl p-4 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
                     )}
                   </div>
                 </div>
-              </Link>
+              </LinkWithProgress>
             ))}
           </div>
         )}

@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import TripRouteMap from "@/components/map/TripRouteMapClient";
 import TripActions from "@/components/trip/TripActions";
+import LinkWithProgress from "@/components/ui/LinkWithProgress";
 
 export default async function TripDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,7 +36,7 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
   return (
     <main className="min-h-screen p-4 max-w-lg mx-auto pb-8">
       <header className="py-4 mb-4">
-        <Link href="/history" className="text-slate-400 text-sm hover:text-white">← History</Link>
+        <LinkWithProgress href="/history" className="text-slate-400 text-sm hover:text-white">← History</LinkWithProgress>
         <h1 className="text-xl font-bold text-white mt-2">{trip.title ?? "Perjalanan tanpa judul"}</h1>
         <p className="text-slate-400 text-sm">
           {new Date(trip.started_at).toLocaleDateString("id-ID", {

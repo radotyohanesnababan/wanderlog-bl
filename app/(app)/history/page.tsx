@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import LinkWithProgress from "@/components/ui/LinkWithProgress";
 
 export default async function HistoryPage() {
   const supabase = await createClient();
@@ -16,9 +16,9 @@ export default async function HistoryPage() {
   return (
     <main className="min-h-screen p-4 max-w-lg mx-auto">
       <header className="py-4 mb-6">
-        <Link href="/dashboard" className="text-slate-400 text-sm hover:text-white">
+        <LinkWithProgress href="/dashboard" className="text-slate-400 text-sm hover:text-white">
           ← Dashboard
-        </Link>
+        </LinkWithProgress>
         <h1 className="text-xl font-bold text-white mt-2">Semua Perjalanan</h1>
         <p className="text-slate-400 text-sm">{trips?.length ?? 0} perjalanan</p>
       </header>
@@ -35,7 +35,7 @@ export default async function HistoryPage() {
               ? Math.round((new Date(trip.ended_at).getTime() - new Date(trip.started_at).getTime()) / 60000)
               : null;
             return (
-              <Link key={trip.id} href={`/trip/${trip.id}`}
+              <LinkWithProgress key={trip.id} href={`/trip/${trip.id}`}
                 className="block bg-slate-800 border border-slate-700 hover:border-slate-500 rounded-xl p-4 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -55,7 +55,7 @@ export default async function HistoryPage() {
                     )}
                   </div>
                 </div>
-              </Link>
+              </LinkWithProgress>
             );
           })}
         </div>
