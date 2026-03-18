@@ -8,6 +8,7 @@ import { totalDistance, formatDuration } from "@/lib/utils/geo";
 import PinPlaceModal from "@/components/trip/PinPlaceModal";
 import TripTitleModal from "@/components/trip/TripTitleModal";
 import { updateTripTitle } from "@/lib/actions/updateTripTItle";
+import { Geolocation } from '@capacitor/geolocation';
 
 // Leaflet harus di-load client-side only
 const TrackMap = dynamic(() => import("@/components/map/TrackMap"), {
@@ -126,53 +127,110 @@ useEffect(() => {
     await updateTripDistance(id, distanceKmRef.current);
   }, []);
 
-  async function handleStart() {
-    setErrorMsg(null);
-    setStatus("requesting");
+async function handleStart() {
+  setErrorMsg(null);
+  setStatus("requesting");
 
-    if (!navigator.geolocation) {
-      setErrorMsg("Browser kamu tidak mendukung GPS.");
-      setStatus("error");
-      return;
+  console.log("=== START TRACKING DEBUG ===");
+
+  // ✅ Check permission status
+  try {
+    const permission = await Geolocation.checkPermissions();
+    console.log("📍 Permission check result:", JSON.stringify(permission));
+
+    if (permission.location !== 'granted') {
+      console.log("📍 Permission not granted, requesting...");
+      
+      const request = await Geolocation.requestPermissions();
+      console.log("📍 Request result:", JSON.stringify(request));
+
+      if (request.location !== 'granted') {
+        setErrorMsg("Izin GPS ditolak. Coba restart app.");
+        setStatus("error");
+        return;
+      }
     }
 
-    const { tripId: newTripId, error } = await startTrip();
-    if (error || !newTripId) {
-      setErrorMsg(error ?? "Gagal membuat trip");
-      setStatus("error");
-      return;
-    }
+    console.log("✅ Permission granted, starting GPS...");
 
-    setTripId(newTripId);
-    setStartTime(new Date());
-    setPoints([]);
-    setDistanceKm(0);
-    pendingPointsRef.current = [];
+  } catch (err: any) {
+    console.error("❌ Permission error:", err);
+    setErrorMsg(`Permission error: ${err.message}`);
+    setStatus("error");
+    return;
+  }
 
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  // ✅ Test dengan Capacitor Geolocation dulu (bukan navigator.geolocation)
+  try {
+    console.log("📍 Testing GPS with Capacitor...");
+    
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 10000
+    });
+
+    console.log("✅ GPS works! Position:", position.coords);
+    
+  } catch (err: any) {
+    console.error("❌ GPS test failed:", err);
+    setErrorMsg(`GPS test failed: ${err.message}`);
+    setStatus("error");
+    return;
+  }
+
+  // ✅ Baru create trip & start tracking
+  const { tripId: newTripId, error } = await startTrip();
+  if (error || !newTripId) {
+    setErrorMsg(error ?? "Gagal membuat trip");
+    setStatus("error");
+    return;
+  }
+
+  setTripId(newTripId);
+  setStartTime(new Date());
+  setPoints([]);
+  setDistanceKm(0);
+  pendingPointsRef.current = [];
+
+  // ✅ Gunakan Capacitor Geolocation.watchPosition (lebih reliable)
+  const watchId = await Geolocation.watchPosition(
+    {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 0
+    },
+    (position, err) => {
+      if (err) {
+        console.error("❌ Watch error:", err);
+        setErrorMsg(`GPS watch error: ${err.message}`);
+        setStatus("error");
+        stopAllIntervals();
+        return;
+      }
+
+      if (position) {
+        const p = { 
+          lat: position.coords.latitude, 
+          lng: position.coords.longitude 
+        };
         latestPosRef.current = p;
         setCurrentPos(p);
-      },
-      (err) => {
-  const msg = {
-    1: "Izin GPS ditolak",
-    2: "Posisi tidak tersedia",
-    3: "GPS timeout",
-  }[err.code] ?? `Error code ${err.code}`;
-  
-  setErrorMsg(`GPS error: ${msg}`);
-  setStatus("error");
-  stopAllIntervals();
-},
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
-    );
+        console.log("📍 Position update:", p);
+      }
+    }
+  );
 
-    gpsIntervalRef.current = setInterval(recordPoint, GPS_INTERVAL_MS);
-    batchIntervalRef.current = setInterval(() => batchSave(newTripId), BATCH_INTERVAL_MS);
-    setStatus("tracking");
-  }
+  // Store watch ID untuk cleanup nanti
+  watchIdRef.current = watchId as any;
+
+  gpsIntervalRef.current = setInterval(recordPoint, GPS_INTERVAL_MS);
+  batchIntervalRef.current = setInterval(() => batchSave(newTripId), BATCH_INTERVAL_MS);
+  setStatus("tracking");
+  
+  console.log("✅ Tracking started!");
+}
+
+
 
   async function handleStop() {
     if (!tripId) return;

@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
 import NavigationProgress from "@/components/ui/NavigationProgress";
+import GPSProvider from "@/components/GPSProvider";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default function RootLayout({
         <Suspense>
           <NavigationProgress />
         </Suspense>
+        <GPSProvider />
         {children}
       </body>
     </html>
